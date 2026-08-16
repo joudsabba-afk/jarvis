@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>J.A.R.V.I.S.</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --bg: #04070a;
+    --panel: rgba(10, 22, 30, 0.6);
+    --line: rgba(80, 200, 255, 0.35);
+    --line-bright: rgba(120, 220, 255, 0.9);
+    --cyan: #6fe3ff;
+    --cyan-dim: #2e8fa8;
+    --text: #d6f4ff;
+    --text-dim: #6f9aab;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: radial-gradient(ellipse at center, #0a1620 0%, #04070a 70%);
+    color: var(--text);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 60px;
+    gap: 20px;
+  }
+
+  .ring-wrap { position: relative; width: 260px; height: 260px; }
+  .ring-wrap svg { width: 100%; height: 100%; }
+  .ring { fill: none; stroke: var(--line); stroke-width: 1; }
+  .ring-bright { fill: none; stroke: var(--cyan); stroke-width: 1.5; opacity: 0.85; }
+  .spin-slow { animation: spin 40s linear infinite; transform-origin: 130px 130px; }
+  .spin-slow-rev { animation: spin 30s linear infinite reverse; transform-origin: 130px 130px; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .jarvis-label {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px; font-weight: 300; letter-spacing: 4px;
+    color: var(--text); text-shadow: 0 0 16px rgba(111,227,255,0.7);
+    white-space: nowrap;
+  }
+
+  .clock { font-size: 44px; font-weight: 300; letter-spacing: 2px; text-shadow: 0 0 20px rgba(111,227,255,0.5); text-align: center; }
+  .date { font-size: 13px; letter-spacing: 3px; color: var(--cyan-dim); text-transform: uppercase; text-align: center; margin-top: 4px; }
+
+  .panel {
+    width: 100%; max-width: 560px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .label { font-size: 10px; letter-spacing: 2px; color: var(--cyan-dim); text-transform: uppercase; margin-bottom: 8px; }
+  input[type="password"], input[type="text"] {
+    width: 100%; padding: 10px 12px; border-radius: 6px;
+    border: 1px solid var(--line); background: #0a121a; color: var(--text); font-size: 14px;
+  }
+  small.note { color: var(--text-dim); display: block; margin-top: 6px; font-size: 11.5px; }
+
+  button {
+    border: none; border-radius: 6px; padding: 10px 16px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  #micBtn {
+    background: var(--cyan); color: #04070a; width: 100%; padding: 14px;
+    font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  #micBtn.listening { background: #ff5b5b; animation: pulseBtn 1.2s infinite; }
+  @keyframes pulseBtn { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+  #googleBtn {
+    background: transparent; color: var(--text); border: 1px solid var(--line);
+    width: 100%; margin-top: 8px;
+  }
+  #googleBtn.connected { border-color: var(--cyan); color: var(--cyan); }
+
+  #status { color: var(--text-dim); font-size: 13px; margin-top: 10px; text-align: center; }
+  #typedInput { margin-top: 10px; }
+
+  #log { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .msg { padding: 9px 11px; border-radius: 6px; font-size: 13.5px; line-height: 1.4; }
+  .msg.user { background: #232733; align-self: flex-end; max-width: 80%; margin-left: auto; }
+  .msg.jarvis { background: #10202c; border: 1px solid #1f3a52; max-width: 90%; }
+  .msg .who { font-size: 10.5px; color: var(--text-dim); margin-bottom: 3px; }
+</style>
+</head>
+<body>
+
+  <div class="ring-wrap">
+    <svg viewBox="0 0 260 260">
+      <g class="spin-slow">
+        <circle class="ring" cx="130" cy="130" r="120"/>
+        <circle class="ring" cx="130" cy="130" r="120" stroke-dasharray="4 10"/>
+      </g>
+      <g class="spin-slow-rev"><circle class="ring-bright" cx="130" cy="130" r="95" stroke-dasharray="2 6"/></g>
+      <circle class="ring" cx="130" cy="130" r="70"/>
+    </svg>
+    <div class="jarvis-label">J A R V I S</div>
+  </div>
+
+  <div>
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="date" id="dateStr">LOADING</div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Setup</div>
+    <input type="password" id="groqKey" placeholder="Groq API key (gsk_...) — free at console.groq.com/keys">
+    <small class="note">This is the "brain" — free, no card needed.</small>
+    <input type="text" id="googleClientId" style="margin-top:10px;" placeholder="Google OAuth Client ID (for Gmail + Calendar)">
+    <small class="note">From your Google Cloud OAuth setup. Needed for real email sending and calendar events.</small>
+    <button id="googleBtn">Sign in with Google</button>
+    <small class="note" id="googleStatus">Not connected — app opening &amp; chat still work without this.</small>
+  </div>
+
+  <div class="panel">
+    <div id="status" style="display:flex; align-items:center; justify-content:center; gap:10px;">
+      <span id="listenDot" style="width:10px; height:10px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan);"></span>
+      <span id="statusText">Say something — I'm always listening.</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Log</div>
+    <div id="log"></div>
+  </div>
+
+<script>
+// ---------- Clock ----------
+function pad(n){ return n.toString().padStart(2,'0'); }
+function tick(){
+  const now = new Date();
+  let h = now.getHours();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if (h === 0) h = 12;
+  document.getElementById('clock').textContent = h+':'+pad(now.getMinutes())+':'+pad(now.getSeconds())+' '+ampm;
+  document.getElementById('dateStr').textContent = now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
+}
+tick(); setInterval(tick, 1000);
+
+// ---------- UI helpers ----------
+const logEl = document.getElementById('log');
+function addMessage(who, text){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (who === 'You' ? 'user' : 'jarvis');
+  div.innerHTML = `<div class="who">${who}</div>${text}`;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function speak(text){
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 1.02;
+  window.speechSynthesis.speak(u);
+}
+
+// ---------- App-opening ----------
+const APP_MAP = {
+  "gmail": "https://mail.google.com", "email": "https://mail.google.com",
+  "calendar": "https://calendar.google.com", "spotify": "https://open.spotify.com",
+  "youtube": "https://youtube.com", "drive": "https://drive.google.com",
+  "docs": "https://docs.google.com", "sheets": "https://sheets.google.com",
+  "maps": "https://maps.google.com", "netflix": "https://netflix.com", "amazon": "https://amazon.com"
+};
+function openApp(appName){
+  const key = appName.trim().toLowerCase();
+  if (APP_MAP[key]) { window.open(APP_MAP[key], '_blank'); return `Opening ${appName}.`; }
+  return `I don't have '${appName}' mapped yet. Known: ${Object.keys(APP_MAP).join(', ')}.`;
+}
+
+// ---------- Google OAuth ----------
+let googleToken = null;
+let tokenClient = null;
+const GOOGLE_SCOPES = "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events";
+
+function initGoogle() {
+  const clientId = document.getElementById('googleClientId').value.trim();
+  if (!clientId || !window.google) return false;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: GOOGLE_SCOPES,
+    callback: (resp) => {
+      if (resp.access_token) {
+        googleToken = resp.access_token;
+        document.getElementById('googleBtn').classList.add('connected');
+        document.getElementById('googleBtn').textContent = 'Connected to Google';
+        document.getElementById('googleStatus').textContent = 'Gmail + Calendar are live.';
+      }
+    }
+  });
+  return true;
+}
+
+document.getElementById('googleBtn').addEventListener('click', () => {
+  if (!initGoogle()) { addMessage('Jarvis', 'Paste your Google Client ID above first.'); return; }
+  tokenClient.requestAccessToken();
+});
+
+// ---------- Gmail send ----------
+function buildMime(to, subject, body) {
+  const msg = `To: ${to}\r\nSubject: ${subject}\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n${body}`;
+  return btoa(unescape(encodeURIComponent(msg))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function sendEmail(to, subject, body) {
+  if (!googleToken) return "You're not signed in to Google yet — click 'Sign in with Google' above first.";
+  try {
+    const raw = buildMime(to, subject, body);
+    const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + googleToken, "Content-Type": "application/json" },
+      body: JSON.stringify({ raw })
+    });
+    if (!res.ok) { const err = await res.json(); return `Couldn't send email: ${err.error ? err.error.message : res.statusText}`; }
+    return `Email sent to ${to}.`;
+  } catch (e) { return `Couldn't send email: ${e.message}`; }
+}
+
+// ---------- Calendar create ----------
+async function createEvent(summary, startIso, endIso, description) {
+  if (!googleToken) return "You're not signed in to Google yet — click 'Sign in with Google' above first.";
+  try {
+    const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + googleToken, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        summary: summary,
+        description: description || "",
+        start: { dateTime: startIso },
+        end: { dateTime: endIso }
+      })
+    });
+    if (!res.ok) { const err = await res.json(); return `Couldn't create event: ${err.error ? err.error.message : res.statusText}`; }
+    return `Added "${summary}" to your calendar.`;
+  } catch (e) { return `Couldn't create event: ${e.message}`; }
+}
+
+// ---------- Brain (Groq) ----------
+const TOOLS = [
+  { type:"function", function:{ name:"open_app", description:"Open a website/web app in a new tab by friendly name, e.g. 'gmail', 'spotify'.",
+    parameters:{ type:"object", properties:{ app_name:{type:"string"} }, required:["app_name"] } } },
+  { type:"function", function:{ name:"send_email", description:"Send an email via the user's Gmail.",
+    parameters:{ type:"object", properties:{
+      to:{type:"string", description:"recipient email address"},
+      subject:{type:"string"}, body:{type:"string"}
+    }, required:["to","subject","body"] } } },
+  { type:"function", function:{ name:"create_event", description:"Create a Google Calendar event.",
+    parameters:{ type:"object", properties:{
+      summary:{type:"string"},
+      start_iso:{type:"string", description:"ISO 8601 datetime, e.g. 2026-08-20T14:00:00"},
+      end_iso:{type:"string", description:"ISO 8601 datetime, e.g. 2026-08-20T15:00:00"},
+      description:{type:"string"}
+    }, required:["summary","start_iso","end_iso"] } } }
+];
+
+const now = new Date();
+const SYSTEM_PROMPT = `You are Jarvis, a concise personal assistant running in the user's Chrome browser. Current date/time: ${now.toString()}. Use open_app to open sites, send_email to send email, create_event to add calendar events (infer start/end times from natural language relative to the current date/time given). For everything else, answer directly and briefly since replies are read aloud.`;
+
+let conversation = [{ role: "system", content: SYSTEM_PROMPT }];
+
+async function fetchGroq(apiKey, messages) {
+  return fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+    body: JSON.stringify({ model: "llama-3.3-70b-versatile", max_tokens: 1024, tools: TOOLS, messages: messages })
+  });
+}
+
+async function runTool(call) {
+  const args = JSON.parse(call.function.arguments || "{}");
+  if (call.function.name === "open_app") return openApp(args.app_name || "");
+  if (call.function.name === "send_email") return await sendEmail(args.to, args.subject, args.body);
+  if (call.function.name === "create_event") return await createEvent(args.summary, args.start_iso, args.end_iso, args.description);
+  return "Unknown action.";
+}
+
+async function callJarvis(userText) {
+  const apiKey = document.getElementById('groqKey').value.trim();
+  if (!apiKey) { addMessage('Jarvis', 'Please paste your free Groq API key above first.'); return; }
+
+  conversation.push({ role: "user", content: userText });
+  document.getElementById('statusText').textContent = "Thinking...";
+
+  try {
+    let res = await fetchGroq(apiKey, conversation);
+    let data = await res.json();
+    if (!res.ok) { addMessage('Jarvis', `Error: ${data.error ? data.error.message : res.statusText}`); document.getElementById('statusText').textContent = "Say something — I'm always listening."; return; }
+
+    let message = data.choices[0].message;
+    conversation.push(message);
+
+    if (message.content && message.content.trim()) { addMessage('Jarvis', message.content.trim()); speak(message.content.trim()); }
+
+    if (message.tool_calls && message.tool_calls.length) {
+      for (const call of message.tool_calls) {
+        const resultText = await runTool(call);
+        addMessage('Jarvis', resultText);
+        speak(resultText);
+        conversation.push({ role: "tool", tool_call_id: call.id, content: resultText });
+      }
+      document.getElementById('statusText').textContent = "Thinking...";
+      res = await fetchGroq(apiKey, conversation);
+      data = await res.json();
+      if (res.ok) {
+        message = data.choices[0].message;
+        conversation.push(message);
+        if (message.content && message.content.trim()) { addMessage('Jarvis', message.content.trim()); speak(message.content.trim()); }
+      }
+    }
+  } catch (e) { addMessage('Jarvis', `Something went wrong: ${e.message}`); }
+
+  document.getElementById('statusText').textContent = "Say something — I'm always listening.";
+}
+
+// ---------- Speech recognition ----------
+let recognizing = false, recognition = null;
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  const dot = document.getElementById('listenDot');
+  const statusText = document.getElementById('statusText');
+  let micEnabled = false;
+  let paused = false; // true while Jarvis is thinking or speaking, so it doesn't hear itself
+
+  recognition.onstart = () => {
+    recognizing = true;
+    dot.style.background = '#ff5b5b';
+    dot.style.boxShadow = '0 0 8px #ff5b5b';
+    statusText.textContent = "Listening...";
+  };
+  recognition.onend = () => {
+    recognizing = false;
+    dot.style.background = 'var(--cyan)';
+    dot.style.boxShadow = '0 0 8px var(--cyan)';
+    // auto-restart to keep listening continuously, unless paused while thinking/speaking
+    if (micEnabled && !paused) {
+      setTimeout(() => { try { recognition.start(); } catch(e) {} }, 300);
+    }
+  };
+  recognition.onerror = (e) => {
+    if (e.error !== 'no-speech') statusText.textContent = `Mic error: ${e.error}`;
+  };
+  recognition.onresult = async (event) => {
+    const t = event.results[0][0].transcript;
+    addMessage('You', t);
+    paused = true;
+    statusText.textContent = "Thinking...";
+    await callJarvis(t);
+    paused = false;
+    statusText.textContent = "Say something — I'm always listening.";
+    if (micEnabled) { try { recognition.start(); } catch(e) {} }
+  };
+
+  function enableMic() {
+    micEnabled = true;
+    try { recognition.start(); } catch(e) {}
+    const overlay = document.getElementById('enableOverlay');
+    if (overlay) overlay.remove();
+  }
+
+  // Try to start automatically; if the browser blocks it (no user gesture yet),
+  // show a one-time full-page tap overlay to grant mic permission.
+  try {
+    recognition.start();
+    micEnabled = true;
+  } catch (e) {
+    const overlay = document.createElement('div');
+    overlay.id = 'enableOverlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(4,7,10,0.85); display:flex; align-items:center; justify-content:center; z-index:1000; color:var(--text); font-size:18px; letter-spacing:1px; cursor:pointer; text-align:center; padding:20px;';
+    overlay.textContent = 'Tap anywhere to enable the microphone (one-time)';
+    overlay.addEventListener('click', enableMic);
+    document.body.appendChild(overlay);
+  }
+
+  // Pause the mic while Jarvis is speaking so it doesn't transcribe itself,
+  // then resume automatically once speech finishes.
+  const originalSpeak = speak;
+  speak = function(text) {
+    paused = true;
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.02;
+    u.onend = () => { paused = false; if (micEnabled) { try { recognition.start(); } catch(e) {} } };
+    window.speechSynthesis.speak(u);
+  };
+} else {
+  document.getElementById('statusText').textContent = "Speech recognition isn't supported in this browser.";
+}
+</script>
+
+</body>
+</html>
