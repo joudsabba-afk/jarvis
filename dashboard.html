@@ -136,6 +136,17 @@
 </head>
 <body>
 
+  <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.9); color:#7fe8ff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(90,210,255,0.3); max-height:80px; overflow-y:auto;">Debug: starting up…</div>
+  <script>
+    function debugLog(msg) {
+      const el = document.getElementById('debugBar');
+      if (el) el.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+    }
+    window.addEventListener('error', (e) => {
+      debugLog('ERROR: ' + e.message + ' (line ' + e.lineno + ')');
+    });
+  </script>
+
   <button id="screenShareBtn" style="position:fixed; top:16px; right:16px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">📺 Share Screen</button>
   <button id="muteBtn" onclick="toggleMute()" style="position:fixed; top:16px; right:150px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">🔊 Sound On</button>
   <button id="settingsBtn" onclick="openSettings()" style="position:fixed; top:16px; right:284px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">⚙️ Settings</button>
@@ -895,11 +906,13 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognizing = true;
     const dotEl1 = document.getElementById('listenDot'); if (dotEl1) { dotEl1.style.background = '#ff5b5b'; dotEl1.style.boxShadow = '0 0 8px #ff5b5b'; }
     setStatus("Listening...");
+    debugLog("Mic active — listening for speech");
   };
 
   recognition.onend = () => {
     recognizing = false;
     const dotEl2 = document.getElementById('listenDot'); if (dotEl2) { dotEl2.style.background = 'var(--cyan)'; dotEl2.style.boxShadow = '0 0 8px var(--cyan)'; }
+    debugLog("Mic cycle ended — restarting...");
     setTimeout(safeStart, 250);
   };
 
@@ -926,6 +939,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
   recognition.onresult = async (event) => {
     const t = event.results[0][0].transcript;
+    debugLog("Heard: \"" + t + "\"");
     let command;
 
     if (followUpActive) {
@@ -972,13 +986,16 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   // native "Allow microphone" bar to reappear on every restart. Ask once here,
   // then let the recognizer run freely afterward.
   function grantMicAndStart() {
+    debugLog("Requesting microphone access...");
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then((stream) => {
         stream.getTracks().forEach(t => t.stop()); // we only needed the permission grant
         micEnabled = true;
+        debugLog("Mic permission granted — starting recognizer");
         safeStart();
       })
-      .catch(() => {
+      .catch((err) => {
+        debugLog("Mic permission FAILED: " + err.name + " — " + err.message);
         setStatus("Mic permission was blocked — check the site's permissions (padlock icon in the address bar) and allow microphone access, then reload.");
       });
   }
@@ -999,11 +1016,17 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   setStatus(IDLE_TEXT);
 
   // Pause the mic while Jarvis is speaking so it doesn't transcribe itself,
-  // then resume automatically once speech finishes.
+  // then resume automatically once speech finishes. We wrap the existing
+  // speak() (defined earlier, with mute-check and voice selection already
+  // built in) rather than replacing it, so nothing gets silently lost.
+  const baseSpeak = speak;
   speak = function(text) {
     paused = true;
+    if (isMuted) { paused = false; safeStart(); return; }
     const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1.02;
+    if (chosenVoice) u.voice = chosenVoice;
+    u.rate = 0.96;
+    u.pitch = 0.85;
     u.onend = () => { paused = false; safeStart(); };
     window.speechSynthesis.speak(u);
   };
