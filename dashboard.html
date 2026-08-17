@@ -1029,11 +1029,14 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const baseSpeak = speak;
   speak = function(text) {
     paused = true;
-    if (isMuted) { paused = false; safeStart(); return; }
+    debugLog("speak() called, isMuted=" + isMuted + ", voice=" + (chosenVoice ? chosenVoice.name : "default"));
+    if (isMuted) { debugLog("Blocked: sound is muted (tap Settings/mute button to unmute)"); paused = false; safeStart(); return; }
     const u = new SpeechSynthesisUtterance(text);
     if (chosenVoice) u.voice = chosenVoice;
     u.rate = 1.0;
     u.pitch = 1.0;
+    u.onstart = () => debugLog("Speech synthesis started playing");
+    u.onerror = (e) => debugLog("Speech synthesis ERROR: " + e.error);
     u.onend = () => { paused = false; safeStart(); };
     window.speechSynthesis.speak(u);
   };
