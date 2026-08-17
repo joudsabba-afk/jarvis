@@ -136,11 +136,17 @@
 </head>
 <body>
 
-  <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.9); color:#7fe8ff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(90,210,255,0.3); max-height:80px; overflow-y:auto;">Debug: starting up…</div>
+  <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.92); color:#7fe8ff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(90,210,255,0.3); max-height:120px; overflow-y:auto; line-height:1.6;">Debug: starting up…</div>
   <script>
+    let debugHistory = [];
     function debugLog(msg) {
       const el = document.getElementById('debugBar');
-      if (el) el.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+      debugHistory.push(new Date().toLocaleTimeString() + ' — ' + msg);
+      if (debugHistory.length > 8) debugHistory.shift(); // keep the last 8 lines, oldest first
+      if (el) {
+        el.innerHTML = debugHistory.join('<br>');
+        el.scrollTop = el.scrollHeight;
+      }
     }
     window.addEventListener('error', (e) => {
       debugLog('ERROR: ' + e.message + ' (line ' + e.lineno + ')');
@@ -269,8 +275,8 @@ function pickVoice() {
   if (!voices.length) return;
   const prefer = [
     v => /en-GB/i.test(v.lang) && /male/i.test(v.name),
-    v => /en-GB/i.test(v.lang),
     v => /Daniel|Arthur|Oliver|George/i.test(v.name),
+    v => /en-GB/i.test(v.lang),
     v => /en-US/i.test(v.lang) && /male/i.test(v.name),
     v => /en/i.test(v.lang)
   ];
@@ -298,8 +304,8 @@ function speak(text){
   if (isMuted) return;
   const u = new SpeechSynthesisUtterance(text);
   if (chosenVoice) u.voice = chosenVoice;
-  u.rate = 0.96;
-  u.pitch = 0.85;
+  u.rate = 1.0;
+  u.pitch = 1.0;
   window.speechSynthesis.speak(u);
 }
 
@@ -1026,8 +1032,8 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     if (isMuted) { paused = false; safeStart(); return; }
     const u = new SpeechSynthesisUtterance(text);
     if (chosenVoice) u.voice = chosenVoice;
-    u.rate = 0.96;
-    u.pitch = 0.85;
+    u.rate = 1.0;
+    u.pitch = 1.0;
     u.onend = () => { paused = false; safeStart(); };
     window.speechSynthesis.speak(u);
   };
