@@ -918,6 +918,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
   recognition.onerror = (e) => {
     recognizing = false;
+    debugLog("Mic error event: " + e.error);
     if (e.error === 'no-speech' || e.error === 'aborted') return; // normal, just restart
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
       setStatus("Mic permission blocked — check the site's permissions in Chrome (padlock icon in the address bar) and allow microphone access.");
