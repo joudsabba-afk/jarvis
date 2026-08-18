@@ -10,10 +10,10 @@
     --bg: #03060a;
     --panel: rgba(10, 22, 32, 0.5);
     --panel-border: rgba(90, 210, 255, 0.25);
-    --line: rgba(90, 210, 255, 0.35);
-    --line-bright: rgba(140, 230, 255, 0.95);
-    --cyan: #7fe8ff;
-    --cyan-dim: #3aa3bd;
+    --line: rgba(135, 206, 250, 0.55);
+    --line-bright: rgba(180, 225, 255, 1);
+    --cyan: #87ceff;
+    --cyan-dim: #5fb0e8;
     --text: #e3f7ff;
     --text-dim: #7fa8b8;
   }
@@ -22,11 +22,13 @@
     margin: 0;
     min-height: 100%;
     background:
-      radial-gradient(ellipse 900px 700px at 50% 15%, rgba(30,80,110,0.35) 0%, rgba(3,6,10,0) 60%),
-      radial-gradient(ellipse 1200px 900px at 50% 100%, rgba(20,60,85,0.25) 0%, rgba(3,6,10,0) 65%),
-      repeating-linear-gradient(0deg, rgba(90,210,255,0.035) 0px, rgba(90,210,255,0.035) 1px, transparent 1px, transparent 44px),
-      repeating-linear-gradient(90deg, rgba(90,210,255,0.035) 0px, rgba(90,210,255,0.035) 1px, transparent 1px, transparent 44px),
+      radial-gradient(ellipse 900px 700px at 50% 15%, rgba(135,206,250,0.28) 0%, rgba(10,25,40,0) 60%),
+      radial-gradient(ellipse 1200px 900px at 50% 100%, rgba(100,180,235,0.22) 0%, rgba(10,25,40,0) 65%),
+      repeating-linear-gradient(0deg, rgba(135,206,250,0.06) 0px, rgba(135,206,250,0.06) 1px, transparent 1px, transparent 44px),
+      repeating-linear-gradient(90deg, rgba(135,206,250,0.06) 0px, rgba(135,206,250,0.06) 1px, transparent 1px, transparent 44px),
       var(--bg);
+    background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px, 100% 100%;
+    animation: bgBreathe 8s ease-in-out infinite;
     color: var(--text);
     font-family: 'Rajdhani', 'Segoe UI', sans-serif;
     overflow-x: hidden;
@@ -34,7 +36,7 @@
   html::after {
     content: '';
     position: fixed; inset: 0; pointer-events: none; z-index: 999;
-    background: repeating-linear-gradient(0deg, rgba(180,240,255,0.02) 0px, rgba(180,240,255,0.02) 1px, transparent 1px, transparent 3px);
+    background: repeating-linear-gradient(0deg, rgba(135,206,250,0.02) 0px, rgba(135,206,250,0.02) 1px, transparent 1px, transparent 3px);
   }
   body {
     display: flex;
@@ -45,7 +47,12 @@
     position: relative;
   }
 
-  .ring-wrap { position: relative; width: 340px; height: 340px; filter: drop-shadow(0 0 30px rgba(111,227,255,0.15)); }
+  .ring-wrap { position: relative; width: 340px; height: 340px; filter: drop-shadow(0 0 50px rgba(135,206,250,0.5)); transition: transform 0.15s ease-out; }
+  .ring-wrap.speaking { animation: bounce 0.5s ease-in-out infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
   .ring-wrap svg { width: 100%; height: 100%; }
   .ring { fill: none; stroke: var(--line); stroke-width: 1; }
   .ring-bright { fill: none; stroke: var(--cyan); stroke-width: 1.6; opacity: 0.9; }
@@ -54,20 +61,24 @@
   .spin-slow-rev { animation: spin 34s linear infinite reverse; transform-origin: 170px 170px; }
   .spin-med { animation: spin 20s linear infinite; transform-origin: 170px 170px; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .orbit-dot { fill: var(--cyan); filter: drop-shadow(0 0 6px var(--cyan)); }
+  @keyframes bgBreathe {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.12); }
+  }
+  .orbit-dot { fill: var(--cyan); filter: drop-shadow(0 0 12px var(--cyan)); }
   .jarvis-label {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     font-family: 'Orbitron', sans-serif;
     font-size: 24px; font-weight: 500; letter-spacing: 6px;
-    color: var(--text); text-shadow: 0 0 20px rgba(111,227,255,0.85), 0 0 44px rgba(111,227,255,0.3);
+    color: var(--text); text-shadow: 0 0 26px rgba(135,206,250,1), 0 0 60px rgba(135,206,250,0.55);
     white-space: nowrap;
   }
 
   .clock {
     font-family: 'Orbitron', sans-serif;
     font-size: 52px; font-weight: 500; letter-spacing: 3px;
-    text-shadow: 0 0 24px rgba(111,227,255,0.55), 0 0 60px rgba(111,227,255,0.2);
+    text-shadow: 0 0 30px rgba(135,206,250,0.8), 0 0 80px rgba(135,206,250,0.4);
     text-align: center;
   }
   .date { font-size: 13px; letter-spacing: 4px; color: var(--cyan-dim); text-transform: uppercase; text-align: center; margin-top: 6px; font-weight: 600; }
@@ -95,7 +106,7 @@
     border: 1px solid var(--line); background: rgba(6,14,20,0.7); color: var(--text); font-size: 14px;
     font-family: 'Rajdhani', sans-serif;
   }
-  input:focus { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(111,227,255,0.12); }
+  input:focus { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(135,206,250,0.3); }
   small.note { color: var(--text-dim); display: block; margin-top: 7px; font-size: 12px; }
 
   button {
@@ -127,7 +138,7 @@
   .waveform-bars { display: flex; align-items: flex-end; gap: 2.5px; height: 26px; }
   .waveform-bars span {
     width: 3px; background: var(--cyan); border-radius: 2px;
-    box-shadow: 0 0 4px var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
     animation: wave 1.1s ease-in-out infinite;
   }
   @keyframes wave { 0%,100% { height: 20%; } 50% { height: 100%; } }
@@ -136,34 +147,41 @@
 </head>
 <body>
 
-  <div id="versionMarker" style="position:fixed; top:0; left:0; right:0; z-index:300; background:#ff5b5b; color:#03060a; font-family:monospace; font-size:12px; font-weight:bold; text-align:center; padding:4px;">BUILD v7 — if you see this red bar, the update worked</div>
+  <div id="docTab" onclick="toggleDocPanel()" style="position:fixed; top:50%; right:0; transform:translateY(-50%); z-index:90; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); border-right:none; color:var(--text-dim); font-size:12px; padding:14px 8px; border-radius:8px 0 0 8px; cursor:pointer; font-family:'Rajdhani',sans-serif; writing-mode:vertical-rl; letter-spacing:2px;">📝 PLANS</div>
 
-  <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.92); color:#7fe8ff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(90,210,255,0.3); max-height:120px; overflow-y:auto; line-height:1.6;">Debug: starting up…</div>
+  <div id="docPanel" style="position:fixed; top:0; right:-380px; width:360px; height:100vh; z-index:95; background:var(--panel); backdrop-filter:blur(14px); border-left:1px solid var(--panel-border); padding:20px; box-sizing:border-box; font-family:'Rajdhani',sans-serif; color:var(--text); transition:right 0.25s ease; overflow-y:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div style="font-family:'Orbitron',sans-serif; font-size:14px; letter-spacing:2px; color:var(--cyan);">WRITTEN FOR YOU</div>
+      <span onclick="toggleDocPanel()" style="cursor:pointer; color:var(--text-dim); font-size:18px;">✕</span>
+    </div>
+    <div id="docList" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;"></div>
+    <div id="docTitle" style="font-size:16px; font-weight:600; margin-bottom:8px; color:var(--cyan);"></div>
+    <div id="docContent" style="font-size:13.5px; line-height:1.6; white-space:pre-wrap;"></div>
+    <div id="docEmpty" style="color:var(--text-dim); font-size:13px;">Nothing written yet — ask for a plan, list, or anything you'd like written down, and it'll show up here.</div>
+
+    <div style="margin-top:22px; padding-top:16px; border-top:1px solid var(--panel-border);">
+      <div style="font-family:'Orbitron',sans-serif; font-size:12px; letter-spacing:2px; color:var(--cyan-dim); margin-bottom:8px;">INSERT TEXT</div>
+      <textarea id="insertTextArea" placeholder="Paste or type anything here, then ask Jarvis about it out loud (e.g. 'summarize this' or 'what does this say about X')" style="width:100%; height:110px; background:rgba(6,14,20,0.7); border:1px solid var(--line); border-radius:6px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:13px; padding:10px; box-sizing:border-box; resize:vertical;"></textarea>
+      <button onclick="insertTextForContext()" style="margin-top:8px; background:var(--cyan); border:none; color:#03060a; padding:8px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Give this to Jarvis</button>
+      <div id="insertTextStatus" style="font-size:11.5px; color:var(--text-dim); margin-top:6px;"></div>
+    </div>
+  </div>
+
   <script>
-    let debugHistory = [];
-    function debugLog(msg) {
-      const el = document.getElementById('debugBar');
-      debugHistory.push(new Date().toLocaleTimeString() + ' — ' + msg);
-      if (debugHistory.length > 8) debugHistory.shift(); // keep the last 8 lines, oldest first
-      if (el) {
-        el.innerHTML = debugHistory.join('<br>');
-        el.scrollTop = el.scrollHeight;
-      }
-    }
-    window.addEventListener('error', (e) => {
-      debugLog('ERROR: ' + e.message + ' (line ' + e.lineno + ')');
-    });
+    // Debugging is done — this is now a silent no-op so nothing elsewhere breaks.
+    function debugLog(msg) { /* debug UI removed */ }
   </script>
 
-  <button id="screenShareBtn" style="position:fixed; top:16px; right:16px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">📺 Share Screen</button>
-  <button id="muteBtn" onclick="toggleMute()" style="position:fixed; top:16px; right:150px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">🔊 Sound On</button>
-  <button id="settingsBtn" onclick="openSettings()" style="position:fixed; top:16px; right:284px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">⚙️ Settings</button>
+  <div id="timerDisplay" style="position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:60; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:80%;"></div>
+
+  <button id="settingsBtn" onclick="openSettings()" style="position:fixed; top:16px; right:16px; z-index:50; background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); color:var(--text-dim); font-size:12px; padding:8px 12px; border-radius:8px; cursor:pointer; font-family:'Rajdhani',sans-serif;">⚙️ Settings</button>
 
   <div id="settingsModal" style="display:none; position:fixed; inset:0; z-index:100; background:rgba(3,6,10,0.85); align-items:center; justify-content:center;">
     <div style="background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--panel-border); border-radius:12px; padding:24px; max-width:420px; width:90%; font-family:'Rajdhani',sans-serif; color:var(--text);">
       <div style="font-family:'Orbitron',sans-serif; font-size:15px; letter-spacing:2px; margin-bottom:16px;">SETTINGS</div>
       <div id="settingsKeyList" style="font-size:13px; line-height:2; margin-bottom:16px;"></div>
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="muteBtn" onclick="toggleMute()" style="background:transparent; border:1px solid var(--panel-border); color:var(--text-dim); padding:8px 14px; border-radius:6px; font-size:12px;">🔊 Sound On</button>
         <button onclick="clearAllKeys()" style="background:transparent; border:1px solid var(--panel-border); color:var(--text-dim); padding:8px 14px; border-radius:6px; font-size:12px;">Clear all saved keys</button>
         <button onclick="exportData()" style="background:transparent; border:1px solid var(--panel-border); color:var(--text-dim); padding:8px 14px; border-radius:6px; font-size:12px;">Export my data</button>
         <button onclick="closeSettings()" style="background:var(--cyan); border:none; color:#03060a; padding:8px 14px; border-radius:6px; font-size:12px; font-weight:600;">Close</button>
@@ -196,6 +214,7 @@
     </div>
   </div>
 
+  <div id="watchlist" style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:-6px;"></div>
   <div class="ring-wrap">
     <svg viewBox="0 0 340 340">
       <g class="spin-slow">
@@ -210,7 +229,15 @@
         <circle class="orbit-dot" cx="170" cy="30" r="3.5"/>
       </g>
       <circle class="ring" cx="170" cy="170" r="95"/>
-      <g stroke="rgba(127,232,255,0.4)" stroke-width="1">
+      <circle cx="170" cy="170" r="93" fill="url(#coreGlow)"/>
+      <defs>
+        <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e8faff" stop-opacity="0.95"/>
+          <stop offset="45%" stop-color="var(--cyan)" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="var(--cyan)" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g stroke="rgba(135,206,250,0.6)" stroke-width="1">
         <line x1="170" y1="6" x2="170" y2="20"/>
         <line x1="170" y1="320" x2="170" y2="334"/>
         <line x1="6" y1="170" x2="20" y2="170"/>
@@ -276,6 +303,7 @@ function pickVoice() {
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return;
   const prefer = [
+    v => /Google UK English Male/i.test(v.name),
     v => /en-GB/i.test(v.lang) && /male/i.test(v.name),
     v => /Daniel|Arthur|Oliver|George/i.test(v.name),
     v => /en-GB/i.test(v.lang),
@@ -306,7 +334,7 @@ function speak(text){
   if (isMuted) return;
   const u = new SpeechSynthesisUtterance(text);
   if (chosenVoice) u.voice = chosenVoice;
-  u.rate = 1.0;
+  u.rate = 1.08;
   u.pitch = 1.0;
   window.speechSynthesis.speak(u);
 }
@@ -408,6 +436,36 @@ async function getStockPrice(symbolOrName) {
   }
 }
 
+// ---------- Front-page watchlist (Nike, SoFi, Schwab US Dividend Equity ETF) ----------
+const WATCHLIST_TICKERS = ["NKE", "SOFI", "SCHD"];
+async function refreshWatchlist() {
+  const container = document.getElementById('watchlist');
+  const key = getFinnhubKey();
+  if (!key || !container) return; // stays silently empty until a Finnhub key exists
+  try {
+    const results = await Promise.all(WATCHLIST_TICKERS.map(async (sym) => {
+      const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${key}`);
+      const data = await res.json();
+      return { sym, data };
+    }));
+    container.innerHTML = results.map(({ sym, data }) => {
+      if (!data || data.c === undefined || data.c === 0) {
+        return `<div class="hud-widget" style="flex-direction:column; align-items:flex-start; gap:2px;"><span class="gauge-label">${sym}</span><span style="font-size:12px; color:var(--text-dim);">—</span></div>`;
+      }
+      const up = data.d >= 0;
+      const color = up ? '#8ef0a8' : '#ff9a9a';
+      const arrow = up ? '▲' : '▼';
+      return `<div class="hud-widget" style="flex-direction:column; align-items:flex-start; gap:2px; min-width:90px;">
+        <span class="gauge-label">${sym}</span>
+        <span style="font-family:'Orbitron',sans-serif; font-size:14px; color:var(--text);">$${data.c.toFixed(2)}</span>
+        <span style="font-size:11px; color:${color};">${arrow} ${Math.abs(data.dp).toFixed(2)}%</span>
+      </div>`;
+    }).join('');
+  } catch (e) { /* silently skip a failed refresh, will retry on next interval */ }
+}
+refreshWatchlist();
+setInterval(refreshWatchlist, 60000); // refresh every minute
+
 // ---------- Location (shared by weather + prayer times) ----------
 function getLocation() {
   return new Promise((resolve, reject) => {
@@ -463,16 +521,40 @@ async function getPrayerTimes() {
 }
 
 // ---------- Timer ----------
+// ---------- Visible on-screen timers ----------
+let activeTimers = []; // { id, label, endTime }
+
+function renderTimers() {
+  const container = document.getElementById('timerDisplay');
+  if (!container) return;
+  container.innerHTML = activeTimers.map(t => {
+    const remaining = Math.max(0, t.endTime - Date.now());
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    return `<div style="background:var(--panel); backdrop-filter:blur(10px); border:1px solid var(--panel-border); border-radius:8px; padding:8px 14px; font-family:'Orbitron',sans-serif; color:var(--cyan); font-size:16px; text-align:center; min-width:90px;">
+      <div style="font-size:9px; letter-spacing:1px; color:var(--text-dim); margin-bottom:2px; font-family:'Rajdhani',sans-serif; text-transform:uppercase;">${t.label || 'Timer'}</div>
+      ${pad(mins)}:${pad(secs)}
+    </div>`;
+  }).join('');
+}
+setInterval(renderTimers, 1000);
+
 function setTimer(minutes, label) {
   const mins = parseFloat(minutes);
   if (isNaN(mins) || mins <= 0) return "I didn't catch a valid timer length.";
   const ms = mins * 60000;
+  const id = Date.now() + Math.random();
+  const endTime = Date.now() + ms;
+  activeTimers.push({ id, label, endTime });
+  renderTimers();
   setTimeout(() => {
     const msg = label ? `Timer done: ${label}.` : `Your ${mins}-minute timer is up.`;
     addMessage('Jarvis', msg);
     speak(msg);
+    activeTimers = activeTimers.filter(t => t.id !== id);
+    renderTimers();
   }, ms);
-  return `Timer set for ${mins} minute${mins === 1 ? '' : 's'}${label ? ` (${label})` : ''}.`;
+  return `Timer set for ${mins} minute${mins === 1 ? '' : 's'}${label ? ` (${label})` : ''}, sir.`;
 }
 
 // ---------- To-do / notes list (persists across reloads via localStorage) ----------
@@ -605,6 +687,120 @@ function listContacts() {
   return "Saved: " + entries.map(c => `${c.name} (${c.note})`).join(", ") + ".";
 }
 
+// ---------- Written documents (plans, lists, anything asked to be "written down") ----------
+let writtenDocs = []; // { id, title, content }
+
+function toggleDocPanel() {
+  const panel = document.getElementById('docPanel');
+  const isOpen = panel.style.right === '0px';
+  panel.style.right = isOpen ? '-380px' : '0px';
+}
+
+function renderDocList() {
+  const list = document.getElementById('docList');
+  list.innerHTML = writtenDocs.map(d =>
+    `<span onclick="showDoc('${d.id}')" style="cursor:pointer; background:rgba(135,206,250,0.1); border:1px solid var(--panel-border); border-radius:6px; padding:4px 8px; font-size:11px; color:var(--text-dim);">${d.title}</span>`
+  ).join('');
+}
+
+function showDoc(id) {
+  const doc = writtenDocs.find(d => d.id === id);
+  if (!doc) return;
+  document.getElementById('docTitle').textContent = doc.title;
+  document.getElementById('docContent').textContent = doc.content;
+  document.getElementById('docEmpty').style.display = 'none';
+}
+
+// ---------- Day planning (plan tomorrow tonight, get reminded and asked
+// back the next day, update it any time during the day) ----------
+function dateKey(d) {
+  if (!d) return dateKeyFromDate(new Date());
+  const lower = String(d).trim().toLowerCase();
+  if (lower === 'today') return dateKeyFromDate(new Date());
+  if (lower === 'tomorrow') { const t = new Date(); t.setDate(t.getDate() + 1); return dateKeyFromDate(t); }
+  const parsed = new Date(d);
+  if (isNaN(parsed.getTime())) return dateKeyFromDate(new Date()); // fall back to today rather than crash
+  return dateKeyFromDate(parsed);
+}
+function dateKeyFromDate(dt) {
+  return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+}
+function getDayPlans() {
+  try { return JSON.parse(localStorage.getItem('jarvis_day_plans') || '{}'); }
+  catch (e) { return {}; }
+}
+function saveDayPlan(dateStr, plan) {
+  const plans = getDayPlans();
+  const key = dateKey(dateStr);
+  plans[key] = plan;
+  localStorage.setItem('jarvis_day_plans', JSON.stringify(plans));
+  const label = key === dateKey() ? "today" : key;
+  return `Plan saved for ${label}, sir: ${plan}`;
+}
+function readDayPlan(dateStr) {
+  const plans = getDayPlans();
+  const key = dateStr ? dateKey(dateStr) : dateKey();
+  const plan = plans[key];
+  const label = key === dateKey() ? "today" : key;
+  if (!plan) return `You don't have a plan saved for ${label} yet.`;
+  return `Your plan for ${label}: ${plan}`;
+}
+
+// Once per calendar day, if a plan exists for today and hasn't been spoken
+// yet this session, announce it automatically right after startup.
+function maybeAnnounceTodayPlan() {
+  const todayKey = dateKey();
+  const lastAnnounced = localStorage.getItem('jarvis_plan_announced_date');
+  if (lastAnnounced === todayKey) return; // already told them today
+  const plans = getDayPlans();
+  const plan = plans[todayKey];
+  if (!plan) return; // nothing planned, nothing to announce
+  localStorage.setItem('jarvis_plan_announced_date', todayKey);
+  setTimeout(() => {
+    const msg = `Good day, sir. Here's your plan for today: ${plan}`;
+    addMessage('Jarvis', msg);
+    speak(msg);
+  }, 2000); // brief delay so it doesn't collide with the startup tone
+}
+
+function writeDocument(title, content) {
+  const id = Date.now() + '';
+  writtenDocs.unshift({ id, title, content });
+  if (writtenDocs.length > 10) writtenDocs.pop(); // keep the most recent 10
+  localStorage.setItem('jarvis_docs', JSON.stringify(writtenDocs));
+  renderDocList();
+  showDoc(id);
+  const panel = document.getElementById('docPanel');
+  panel.style.right = '0px'; // auto-open so they notice it
+  return `I've written that down for you — check the panel on the side, sir.`;
+}
+
+// Loads any previously written documents so the panel isn't empty on reload.
+function loadStoredDocs() {
+  try {
+    writtenDocs = JSON.parse(localStorage.getItem('jarvis_docs') || '[]');
+    renderDocList();
+    if (writtenDocs.length) {
+      document.getElementById('docEmpty').style.display = 'none';
+    }
+  } catch (e) { /* ignore malformed storage */ }
+}
+
+// Lets the user paste/type text in the side panel, which gets added to the
+// live conversation so they can then just ask Jarvis about it out loud —
+// e.g. paste an email draft and say "Hey Jarvis, does this sound polite?"
+function insertTextForContext() {
+  const area = document.getElementById('insertTextArea');
+  const text = area.value.trim();
+  const status = document.getElementById('insertTextStatus');
+  if (!text) { status.textContent = "Nothing to give it yet — paste or type something first."; return; }
+  conversation.push({ role: "user", content: `Here is some text for reference. Don't respond to it yet, just remember it for when I ask about it:\n\n${text}` });
+  conversation.push({ role: "assistant", content: "Got it — I'll refer to that when you ask." });
+  status.textContent = "Given to Jarvis — try asking about it out loud now.";
+  area.value = '';
+}
+loadStoredDocs();
+
 // ---------- Music (opens a YouTube search — full playback control needs a
 // separate Spotify account connection, which we haven't set up) ----------
 function playMusic(query) {
@@ -689,23 +885,24 @@ async function getDailyBriefing() {
 let screenStream = null;
 const screenVideo = document.getElementById('screenVideo');
 const screenCanvas = document.getElementById('screenCanvas');
-const screenShareBtn = document.getElementById('screenShareBtn');
 
-screenShareBtn.addEventListener('click', async () => {
+// Browsers require a genuine click to start screen capture — there's no way
+// to make this "always on" silently, since that's a deliberate privacy
+// protection (a site secretly watching your screen would be a serious
+// risk). This is called from the one-time "Tap to start JARVIS" screen, so
+// it's bundled into that same single click instead of a separate button.
+async function requestScreenShare() {
   try {
     screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
     screenVideo.srcObject = screenStream;
-    screenShareBtn.textContent = '📺 Screen shared';
-    screenShareBtn.style.color = 'var(--cyan)';
     screenStream.getVideoTracks()[0].addEventListener('ended', () => {
       screenStream = null;
-      screenShareBtn.textContent = '📺 Share Screen';
-      screenShareBtn.style.color = 'var(--text-dim)';
     });
   } catch (e) {
-    // user cancelled the share picker — nothing to do
+    // user cancelled the share picker — look_at_screen will just report
+    // that screen sharing isn't enabled if asked about it later.
   }
-});
+}
 
 function captureScreenFrame() {
   screenCanvas.width = screenVideo.videoWidth;
@@ -783,6 +980,12 @@ const TOOLS = [
     parameters:{ type:"object", properties:{ name:{type:"string"} }, required:["name"] } } },
   { type:"function", function:{ name:"read_habits", description:"Read back today's routine/habit checklist and completion status.",
     parameters:{ type:"object", properties:{} } } },
+  { type:"function", function:{ name:"save_day_plan", description:"Save or update the user's plan for a specific day. If they're changing an existing plan mid-day, call read_day_plan first, merge in the change, then call this with the full updated plan.",
+    parameters:{ type:"object", properties:{ date:{type:"string", description:"the date this plan is for, resolved to YYYY-MM-DD format based on the current date/time given (e.g. if they say 'tomorrow', compute tomorrow's actual date) — never pass the literal word 'today' or 'tomorrow'"}, plan:{type:"string", description:"the full plan text"} }, required:["date","plan"] } } },
+  { type:"function", function:{ name:"read_day_plan", description:"Read back the saved plan for a specific day (defaults to today if no date given).",
+    parameters:{ type:"object", properties:{ date:{type:"string", description:"the date to look up, resolved to YYYY-MM-DD format based on the current date/time given; omit entirely for today"} } } } },
+  { type:"function", function:{ name:"write_document", description:"Write out a plan, list, or any longer piece of content into a visible side panel for the user to read, instead of only speaking it aloud. Use this whenever the user asks for a plan, itinerary, outline, or anything that should be written down rather than just spoken.",
+    parameters:{ type:"object", properties:{ title:{type:"string", description:"short title for this document"}, content:{type:"string", description:"the full written content"} }, required:["title","content"] } } },
   { type:"function", function:{ name:"convert_currency", description:"Convert an amount from one currency to another, e.g. 100 USD to EUR.",
     parameters:{ type:"object", properties:{ amount:{type:"number"}, from_code:{type:"string", description:"3-letter currency code, e.g. USD"}, to_code:{type:"string", description:"3-letter currency code, e.g. EUR"} }, required:["amount","from_code","to_code"] } } },
   { type:"function", function:{ name:"define_word", description:"Look up the definition of a word.",
@@ -797,7 +1000,7 @@ const TOOLS = [
 ];
 
 const now = new Date();
-const SYSTEM_PROMPT = `You are Jarvis, a concise personal assistant running in the user's Chrome browser. Current date/time: ${now.toString()}. Use open_app to open sites, get_weather for weather, get_prayer_times for Islamic prayer times, set_timer for countdown timers, play_music to search/open a song, look_at_screen to answer anything about what's currently on the user's screen, get_stock_price for stock questions, add_to_list/read_list/remove_from_list for the user's to-do list, get_news for headlines, calculate for math, convert_unit for unit conversions, convert_currency for currency, define_word for definitions, get_briefing for a combined daily summary, save_note/read_notes for quick scratch memory, add_habit/check_off_habit/read_habits for a daily routine checklist, save_contact/read_contact/list_contacts for short notes about people, and set_reminder/list_reminders/cancel_reminder for scheduling (infer when_iso relative to the current date/time given). For everything else, answer directly and briefly since replies are read aloud.`;
+const SYSTEM_PROMPT = `You are Jarvis, a concise personal assistant running in the user's Chrome browser. Address the user as "sir" occasionally and naturally (not every single sentence), in the style of a calm, unflappable British butler-type assistant. Current date/time: ${now.toString()}. Use open_app to open sites, get_weather for weather, get_prayer_times for Islamic prayer times, set_timer for countdown timers, play_music to search/open a song, look_at_screen to answer anything about what's currently on the user's screen, get_stock_price for stock questions, add_to_list/read_list/remove_from_list for the user's to-do list, get_news for headlines, calculate for math, convert_unit for unit conversions, convert_currency for currency, define_word for definitions, get_briefing for a combined daily summary, save_note/read_notes for quick scratch memory, add_habit/check_off_habit/read_habits for a daily routine checklist, save_contact/read_contact/list_contacts for short notes about people, save_day_plan to save or update the user's plan for a specific day (today, tomorrow, or a date — if they're changing it mid-day, read the current plan first then save the merged version), read_day_plan to read back a day's plan when asked "what's my plan," write_document whenever the user asks for a plan, list, itinerary, or anything that should be written down rather than just spoken (give a brief spoken summary alongside it), and set_reminder/list_reminders/cancel_reminder for scheduling (infer when_iso relative to the current date/time given). IMPORTANT: whenever the user tells you something worth remembering for later (a preference, a fact about their life, something they plan to do), proactively call save_note or add_to_list yourself without waiting to be asked to "remember" or "save" it — this is how you actually retain things between visits, since your conversation memory resets each time the page reloads but save_note/add_to_list/add_habit/save_contact persist permanently in the browser. For everything else, answer directly and briefly since replies are read aloud.`;
 
 let conversation = [{ role: "system", content: SYSTEM_PROMPT }];
 
@@ -805,7 +1008,7 @@ async function fetchGroq(apiKey, messages) {
   return fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
-    body: JSON.stringify({ model: "qwen/qwen3.6-27b", max_tokens: 1024, tools: TOOLS, messages: messages })
+    body: JSON.stringify({ model: "llama-3.1-8b-instant", max_tokens: 600, tools: TOOLS, messages: messages })
   });
 }
 
@@ -830,6 +1033,9 @@ async function runTool(call) {
   if (call.function.name === "add_habit") return addHabit(args.name || "");
   if (call.function.name === "check_off_habit") return checkOffHabit(args.name || "");
   if (call.function.name === "read_habits") return readHabits();
+  if (call.function.name === "save_day_plan") return saveDayPlan(args.date, args.plan || "");
+  if (call.function.name === "read_day_plan") return readDayPlan(args.date);
+  if (call.function.name === "write_document") return writeDocument(args.title || "Untitled", args.content || "");
   if (call.function.name === "convert_currency") return await convertCurrency(args.amount, args.from_code, args.to_code);
   if (call.function.name === "define_word") return await defineWord(args.word || "");
   if (call.function.name === "save_contact") return saveContact(args.name || "", args.note || "");
@@ -891,7 +1097,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   // statusText element removed from UI; setStatus() helper handles this safely now
   let micEnabled = false;
   let paused = false; // true while Jarvis is thinking or speaking, so it doesn't hear itself
-  const WAKE_WORD = "hey jarvis";
   const IDLE_TEXT = `Say "Hey Jarvis" to give a command.`;
 
   // Prevents the common "recognition has already started" error, which
@@ -901,11 +1106,16 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     try { recognition.start(); } catch (e) { /* already starting, ignore */ }
   }
 
+  // More forgiving than requiring the exact phrase "hey jarvis" — accepts
+  // "hey jarvis", "ok jarvis", "okay jarvis", or just "jarvis" anywhere in
+  // what was said, and a couple of common speech-recognition mishears of
+  // the name. This fixes having to repeat the wake word several times.
+  const WAKE_PATTERN = /\b(hey|hi|ok|okay)?\s*(jarvis|jarvus|jaarvis|jarvic)\b/i;
   function extractCommand(transcript) {
-    const lower = transcript.toLowerCase();
-    const idx = lower.indexOf(WAKE_WORD);
-    if (idx === -1) return null;
-    let rest = transcript.slice(idx + WAKE_WORD.length).trim();
+    const match = transcript.match(WAKE_PATTERN);
+    if (!match) return null;
+    const idx = match.index + match[0].length;
+    let rest = transcript.slice(idx).trim();
     rest = rest.replace(/^[,:\-]\s*/, '');
     return rest;
   }
@@ -966,8 +1176,8 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     if (!command) {
       // They said just "Hey Jarvis" with nothing after it.
       addMessage('You', 'Hey Jarvis');
-      addMessage('Jarvis', 'Yes?');
-      speak('Yes?');
+      addMessage('Jarvis', 'Yes, sir?');
+      speak('Yes, sir?');
       startFollowUpWindow();
       return;
     }
@@ -1017,15 +1227,16 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const startOverlay = document.createElement('div');
   startOverlay.id = 'enableOverlay';
   startOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(4,7,10,0.92); display:flex; align-items:center; justify-content:center; z-index:1000; color:var(--text); font-size:18px; letter-spacing:1px; cursor:pointer; text-align:center; padding:20px; font-family:"Rajdhani",sans-serif;';
-  startOverlay.textContent = 'Tap anywhere to start JARVIS';
+  startOverlay.innerHTML = 'Tap anywhere to start JARVIS<br><span style="font-size:12px; color:var(--text-dim); letter-spacing:0.5px;">(you\'ll be asked to allow mic + pick a screen to share)</span>';
   startOverlay.addEventListener('click', () => {
     // Unlock speech synthesis with a near-silent utterance triggered by
     // this real click, so future automatic speak() calls are allowed.
     const unlock = new SpeechSynthesisUtterance(' ');
     unlock.volume = 0.01;
     window.speechSynthesis.speak(unlock);
-    debugLog("Audio unlocked by user tap");
     grantMicAndStart();
+    requestScreenShare();
+    maybeAnnounceTodayPlan();
     startOverlay.remove();
   });
   document.body.appendChild(startOverlay);
@@ -1039,17 +1250,28 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const baseSpeak = speak;
   speak = function(text) {
     paused = true;
-    debugLog("speak() called, isMuted=" + isMuted + ", voice=" + (chosenVoice ? chosenVoice.name : "default"));
-    if (isMuted) { debugLog("Blocked: sound is muted (tap Settings/mute button to unmute)"); paused = false; safeStart(); return; }
+    const ringWrap = document.querySelector('.ring-wrap');
+    if (isMuted) { paused = false; safeStart(); return; }
     const u = new SpeechSynthesisUtterance(text);
     if (chosenVoice) u.voice = chosenVoice;
-    u.rate = 1.0;
+    u.rate = 1.08;
     u.pitch = 1.0;
-    u.onstart = () => debugLog("Speech synthesis started playing");
-    u.onerror = (e) => debugLog("Speech synthesis ERROR: " + e.error);
-    u.onend = () => { paused = false; safeStart(); };
+    u.onstart = () => { if (ringWrap) ringWrap.classList.add('speaking'); };
+    u.onend = () => { if (ringWrap) ringWrap.classList.remove('speaking'); paused = false; safeStart(); };
+    u.onerror = () => { if (ringWrap) ringWrap.classList.remove('speaking'); };
     window.speechSynthesis.speak(u);
   };
+
+  // Chrome throttles/pauses background tabs, so speech recognition can stop
+  // reliably firing while you're on another tab. This won't make it keep
+  // listening while backgrounded (that's a browser-level restriction we
+  // can't override) — but it does automatically pick back up the instant
+  // you return to this tab, rather than staying stuck.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && micEnabled) {
+      safeStart();
+    }
+  });
 } else {
   setStatus("Speech recognition isn't supported in this browser.");
 }
