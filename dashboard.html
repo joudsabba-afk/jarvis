@@ -136,6 +136,8 @@
 </head>
 <body>
 
+  <div id="versionMarker" style="position:fixed; top:0; left:0; right:0; z-index:300; background:#ff5b5b; color:#03060a; font-family:monospace; font-size:12px; font-weight:bold; text-align:center; padding:4px;">BUILD v7 — if you see this red bar, the update worked</div>
+
   <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.92); color:#7fe8ff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(90,210,255,0.3); max-height:120px; overflow-y:auto; line-height:1.6;">Debug: starting up…</div>
   <script>
     let debugHistory = [];
@@ -1007,18 +1009,26 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       });
   }
 
-  // Try to get permission automatically; if the browser blocks it (no user
-  // gesture yet), show a one-time full-page tap overlay to grant it.
-  try {
+  // Chrome requires a genuine click on the page itself before it will allow
+  // speech synthesis to play (the mic's native "Allow" popup does NOT count
+  // as this click — that's a separate browser-level permission). So we
+  // always show one required tap here, which unlocks audio AND starts the
+  // mic together, rather than relying on getUserMedia's prompt alone.
+  const startOverlay = document.createElement('div');
+  startOverlay.id = 'enableOverlay';
+  startOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(4,7,10,0.92); display:flex; align-items:center; justify-content:center; z-index:1000; color:var(--text); font-size:18px; letter-spacing:1px; cursor:pointer; text-align:center; padding:20px; font-family:"Rajdhani",sans-serif;';
+  startOverlay.textContent = 'Tap anywhere to start JARVIS';
+  startOverlay.addEventListener('click', () => {
+    // Unlock speech synthesis with a near-silent utterance triggered by
+    // this real click, so future automatic speak() calls are allowed.
+    const unlock = new SpeechSynthesisUtterance(' ');
+    unlock.volume = 0.01;
+    window.speechSynthesis.speak(unlock);
+    debugLog("Audio unlocked by user tap");
     grantMicAndStart();
-  } catch (e) {
-    const overlay = document.createElement('div');
-    overlay.id = 'enableOverlay';
-    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(4,7,10,0.85); display:flex; align-items:center; justify-content:center; z-index:1000; color:var(--text); font-size:18px; letter-spacing:1px; cursor:pointer; text-align:center; padding:20px;';
-    overlay.textContent = 'Tap anywhere to enable the microphone (one-time)';
-    overlay.addEventListener('click', enableMic);
-    document.body.appendChild(overlay);
-  }
+    startOverlay.remove();
+  });
+  document.body.appendChild(startOverlay);
 
   setStatus(IDLE_TEXT);
 
