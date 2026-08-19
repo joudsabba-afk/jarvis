@@ -167,9 +167,15 @@
     </div>
   </div>
 
+  <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.92); color:#87ceff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(135,206,250,0.3); max-height:110px; overflow-y:auto; line-height:1.6;">Debug: starting up…</div>
   <script>
-    // Debugging is done — this is now a silent no-op so nothing elsewhere breaks.
-    function debugLog(msg) { /* debug UI removed */ }
+    let debugHistory = [];
+    function debugLog(msg) {
+      const el = document.getElementById('debugBar');
+      debugHistory.push(new Date().toLocaleTimeString() + ' — ' + msg);
+      if (debugHistory.length > 8) debugHistory.shift();
+      if (el) { el.innerHTML = debugHistory.join('<br>'); el.scrollTop = el.scrollHeight; }
+    }
   </script>
 
   <div id="timerDisplay" style="position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:60; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:80%;"></div>
@@ -1102,8 +1108,15 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   // Prevents the common "recognition has already started" error, which
   // silently breaks the auto-restart loop if two starts overlap.
   function safeStart() {
-    if (recognizing || paused || !micEnabled) return;
-    try { recognition.start(); } catch (e) { /* already starting, ignore */ }
+    if (recognizing) { debugLog("safeStart: skipped, already recognizing"); return; }
+    if (paused) { debugLog("safeStart: skipped, still paused"); return; }
+    if (!micEnabled) { debugLog("safeStart: skipped, mic not enabled"); return; }
+    try {
+      recognition.start();
+      debugLog("safeStart: recognition.start() called OK");
+    } catch (e) {
+      debugLog("safeStart: recognition.start() THREW: " + e.name + " — " + e.message);
+    }
   }
 
   // More forgiving than requiring the exact phrase "hey jarvis" — accepts
@@ -1258,17 +1271,18 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     u.pitch = 1.0;
 
     let resumed = false;
-    function resumeListening() {
-      if (resumed) return; // guard against onend AND the fallback both firing
+    function resumeListening(source) {
+      if (resumed) { debugLog("resumeListening(" + source + "): already resumed, skipped"); return; }
       resumed = true;
+      debugLog("resumeListening(" + source + "): resuming now");
       if (ringWrap) ringWrap.classList.remove('speaking');
       paused = false;
       safeStart();
     }
 
-    u.onstart = () => { if (ringWrap) ringWrap.classList.add('speaking'); };
-    u.onend = resumeListening;
-    u.onerror = resumeListening;
+    u.onstart = () => { if (ringWrap) ringWrap.classList.add('speaking'); debugLog("TTS started speaking"); };
+    u.onend = () => resumeListening('onend');
+    u.onerror = (e) => resumeListening('onerror:' + e.error);
     window.speechSynthesis.speak(u);
 
     // Chrome's speechSynthesis onend event is known to sometimes never fire
@@ -1277,7 +1291,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     // listening resumes even if that happens — timed generously past the
     // text's estimated speaking length.
     const estimatedMs = Math.max(2000, text.length * 90);
-    setTimeout(resumeListening, estimatedMs);
+    setTimeout(() => resumeListening('fallback-timer'), estimatedMs);
   };
 
   // Chrome throttles/pauses background tabs, so speech recognition can stop
