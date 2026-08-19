@@ -1008,7 +1008,7 @@ async function fetchGroq(apiKey, messages) {
   return fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
-    body: JSON.stringify({ model: "llama-3.1-8b-instant", max_tokens: 600, tools: TOOLS, messages: messages })
+    body: JSON.stringify({ model: "openai/gpt-oss-20b", max_tokens: 600, tools: TOOLS, messages: messages })
   });
 }
 
