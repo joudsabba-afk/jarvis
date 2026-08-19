@@ -167,15 +167,9 @@
     </div>
   </div>
 
-  <div id="debugBar" style="position:fixed; bottom:0; left:0; right:0; z-index:200; background:rgba(3,6,10,0.92); color:#87ceff; font-family:monospace; font-size:11px; padding:6px 10px; border-top:1px solid rgba(135,206,250,0.3); max-height:110px; overflow-y:auto; line-height:1.6;">Debug: starting up…</div>
   <script>
-    let debugHistory = [];
-    function debugLog(msg) {
-      const el = document.getElementById('debugBar');
-      debugHistory.push(new Date().toLocaleTimeString() + ' — ' + msg);
-      if (debugHistory.length > 8) debugHistory.shift();
-      if (el) { el.innerHTML = debugHistory.join('<br>'); el.scrollTop = el.scrollHeight; }
-    }
+    // Debugging is done — this is now a silent no-op so nothing elsewhere breaks.
+    function debugLog(msg) { /* debug UI removed */ }
   </script>
 
   <div id="timerDisplay" style="position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:60; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:80%;"></div>
@@ -1054,7 +1048,7 @@ async function runTool(call) {
 
 async function callJarvis(userText) {
   const apiKey = getGroqKey();
-  if (!apiKey) { addMessage('Jarvis', 'Please paste your free Groq API key above first.'); return; }
+  if (!apiKey) { const m = 'Please paste your free Groq API key above first.'; addMessage('Jarvis', m); speak(m); return; }
 
   conversation.push({ role: "user", content: userText });
   setStatus("Thinking...");
@@ -1062,7 +1056,10 @@ async function callJarvis(userText) {
   try {
     let res = await fetchGroq(apiKey, conversation);
     let data = await res.json();
-    if (!res.ok) { addMessage('Jarvis', `Error: ${data.error ? data.error.message : res.statusText}`); setStatus(IDLE_TEXT_FALLBACK); return; }
+    if (!res.ok) {
+      const m = `Sorry, I ran into an error: ${data.error ? data.error.message : res.statusText}`;
+      addMessage('Jarvis', m); speak(m); setStatus(IDLE_TEXT_FALLBACK); return;
+    }
 
     let message = data.choices[0].message;
     conversation.push(message);
@@ -1083,9 +1080,15 @@ async function callJarvis(userText) {
         message = data.choices[0].message;
         conversation.push(message);
         if (message.content && message.content.trim()) { addMessage('Jarvis', message.content.trim()); speak(message.content.trim()); }
+      } else {
+        const m = `Sorry, I hit an error following up on that: ${data.error ? data.error.message : res.statusText}`;
+        addMessage('Jarvis', m); speak(m);
       }
     }
-  } catch (e) { addMessage('Jarvis', `Something went wrong: ${e.message}`); }
+  } catch (e) {
+    const m = `Sorry, sir, something went wrong: ${e.message}`;
+    addMessage('Jarvis', m); speak(m);
+  }
 
   setStatus(IDLE_TEXT_FALLBACK);
 }
