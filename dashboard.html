@@ -277,7 +277,7 @@ function getStoredKey(name, label, urlHint) {
   return (val || '').trim();
 }
 function getGroqKey() { return getStoredKey('jarvis_groq_key', 'free Groq API key', 'get one at console.groq.com/keys'); }
-function getFinnhubKey() { return localStorage.getItem('jarvis_finnhub_key') || ''; }
+function getFinnhubKey() { return getStoredKey('jarvis_finnhub_key', 'free Finnhub API key (for stock prices)', 'get one at finnhub.io/register'); }
 function setStatus(text) { const el = document.getElementById('statusText'); if (el) el.textContent = text; }
 
 // ---------- Shared error helper — turns raw fetch failures into clear,
@@ -1131,7 +1131,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognizing = false;
     const dotEl2 = document.getElementById('listenDot'); if (dotEl2) { dotEl2.style.background = 'var(--cyan)'; dotEl2.style.boxShadow = '0 0 8px var(--cyan)'; }
     debugLog("Mic cycle ended — restarting...");
-    setTimeout(safeStart, 250);
+    setTimeout(safeStart, 120);
   };
 
   recognition.onerror = (e) => {
@@ -1256,10 +1256,28 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     if (chosenVoice) u.voice = chosenVoice;
     u.rate = 1.08;
     u.pitch = 1.0;
+
+    let resumed = false;
+    function resumeListening() {
+      if (resumed) return; // guard against onend AND the fallback both firing
+      resumed = true;
+      if (ringWrap) ringWrap.classList.remove('speaking');
+      paused = false;
+      safeStart();
+    }
+
     u.onstart = () => { if (ringWrap) ringWrap.classList.add('speaking'); };
-    u.onend = () => { if (ringWrap) ringWrap.classList.remove('speaking'); paused = false; safeStart(); };
-    u.onerror = () => { if (ringWrap) ringWrap.classList.remove('speaking'); };
+    u.onend = resumeListening;
+    u.onerror = resumeListening;
     window.speechSynthesis.speak(u);
+
+    // Chrome's speechSynthesis onend event is known to sometimes never fire
+    // (especially for short phrases), which would otherwise leave the mic
+    // permanently paused with no way to recover. This fallback guarantees
+    // listening resumes even if that happens — timed generously past the
+    // text's estimated speaking length.
+    const estimatedMs = Math.max(2000, text.length * 90);
+    setTimeout(resumeListening, estimatedMs);
   };
 
   // Chrome throttles/pauses background tabs, so speech recognition can stop
